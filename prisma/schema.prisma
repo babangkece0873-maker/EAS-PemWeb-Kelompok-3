@@ -1,0 +1,78 @@
+// Prisma schema - MBG Distribution Management System
+// Default: SQLite (mudah untuk development & demo).
+// Untuk deploy ke Vercel (production), ganti provider ke "postgresql".
+// Lihat README.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  name      String
+  role      String     @default("OPERATOR")
+  createdAt DateTime @default(now())
+}
+
+model Sekolah {
+  id           String        @id @default(cuid())
+  nama         String
+  npsn         String        @unique
+  alamat       String
+  jenjang      String        @default("SD")
+  jumlahSiswa  Int           @default(0)
+  kontak       String        @default("")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  distribusi   Distribusi[]
+}
+
+model Vendor {
+  id         String       @id @default(cuid())
+  nama       String
+  alamat     String
+  kontak     String
+  email      String        @default("")
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  distribusi Distribusi[]
+}
+
+model Menu {
+  id         String       @id @default(cuid())
+  nama       String
+  deskripsi  String       @default("")
+  kalori     Int          @default(0)
+  harga      Int          @default(0)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  distribusi Distribusi[]
+}
+
+model Distribusi {
+  id           String           @id @default(cuid())
+  tanggal      DateTime
+  sekolahId    String
+  vendorId     String
+  menuId       String
+  jumlahPorsi  Int              @default(0)
+  status       String @default("TERJADWAL")
+  catatan      String           @default("")
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  sekolah Sekolah @relation(fields: [sekolahId], references: [id], onDelete: Cascade)
+  vendor  Vendor  @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  menu    Menu    @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+  @@index([tanggal])
+  @@index([status])
+}
